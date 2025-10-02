@@ -5,6 +5,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const goToStoredEditButton = document.getElementById('goToStoredEditButton');
   const logoutButton = document.getElementById('logoutButton');
   const clearStoredUrlButton = document.getElementById('clearStoredUrlButton');
+  const optionsButton = document.getElementById('optionsButton');
+
+  if (optionsButton) {
+    optionsButton.addEventListener('click', () => {
+      chrome.runtime.openOptionsPage();
+    });
+  }
 
   // Function to update button visibility based on stored URL
   const updateButtonVisibility = () => {
