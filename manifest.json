@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Go To Edit",
+  "version": "1.0",
+  "description": "Redirects to the edit version of a House.gov website.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "tabs",
+    "storage"
+  ],
+  "host_permissions": [
+    "*://*.house.gov/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.svg",
+      "48": "icons/icon48.svg",
+      "128": "icons/icon128.svg"
+    }
+  }
+}

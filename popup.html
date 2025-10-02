@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Go To Edit</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      width: 450px; /* Wider to accommodate two columns */
+      padding: 10px;
+    }
+    .container {
+      display: flex;
+      justify-content: space-between;
+    }
+    .column {
+      flex: 1;
+      padding: 5px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 5px; /* Add some space between buttons */
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    #goToStoredEditButton {
+      background-color: #008CBA; /* Different color for the second button */
+    }
+    #goToStoredEditButton:hover {
+      background-color: #007B9E;
+    }
+    #logoutButton {
+      background-color: #f44336; /* Red for logout */
+    }
+    #logoutButton:hover {
+      background-color: #da190b;
+    }
+    #clearStoredUrlButton {
+      background-color: #f44336; /* Red for clear */
+    }
+    #clearStoredUrlButton:hover {
+      background-color: #da190b;
+    }
+    #adminLoginButton {
+      background-color: #ff9800; /* Orange for admin */
+    }
+    #adminLoginButton:hover {
+      background-color: #f57c00;
+    }
+    #logoutAndAdminLoginButton {
+      background-color: #9C27B0; /* Purple for the new button */
+    }
+    #logoutAndAdminLoginButton:hover {
+      background-color: #7B1FA2;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="column">
+      <button id="captureAndPrepareButton">Capture & Prepare Edit URL</button>
+      <button id="adminLoginButton">Login as Admin</button>
+      <button id="goToStoredEditButton" style="display:none;">Go to Stored Edit Page</button>
+      <button id="clearStoredUrlButton" style="display:none;">Clear Stored URL</button>
+    </div>
+    <div class="column">
+      <button id="logoutAndAdminLoginButton" disabled>Logout and Log in as Admin</button>
+      <button id="logoutButton" style="display:none;">Logout</button>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
