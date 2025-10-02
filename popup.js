@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (optionsButton) {
     optionsButton.addEventListener('click', () => {
-      chrome.runtime.openOptionsPage();
+      chrome.tabs.create({ url: 'options.html' });
     });
   }
 
@@ -41,34 +41,73 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("Cannot run on special browser pages.");
         return;
       }
-      const urlObj = new URL(currentUrl);
-      let targetLoginUrl;
-      let preparedEditUrlForSecondButton;
 
-      const hostnameParts = urlObj.hostname.split('.');
-      const protocol = urlObj.protocol;
-      const originalPath = urlObj.pathname + urlObj.search + urlObj.hash;
+      chrome.storage.local.get({ urls: [] }, (result) => {
+        const savedUrls = result.urls;
+        const currentUrlObj = new URL(currentUrl);
+        const currentHostname = currentUrlObj.hostname.replace(/^www\./, '');
 
-      // Check if 'edit-' is already in the hostname
-      if (hostnameParts[0].startsWith('edit-')) {
-        // Already on an edit- site
-        targetLoginUrl = `${protocol}//${urlObj.hostname}${loginPath}`;
-        preparedEditUrlForSecondButton = currentUrl; // Keep the current URL for the second button
-      } else {
-        // Not on an edit- site, prepend 'edit-'
-        const memberName = hostnameParts[0];
-        const domain = hostnameParts.slice(1).join('.');
-        targetLoginUrl = `${protocol}//edit-${memberName}.${domain}${loginPath}`;
-        preparedEditUrlForSecondButton = `${protocol}//edit-${memberName}.${domain}${originalPath}`;
-      }
+        let matchedUrl = null;
+        for (const savedUrl of savedUrls) {
+          try {
+            const publicUrl1Hostname = new URL(savedUrl.publicUrl1).hostname.replace(/^www\./, '');
+            const publicUrl2Hostname = savedUrl.publicUrl2 ? new URL(savedUrl.publicUrl2).hostname.replace(/^www\./, '') : null;
 
-      // Store the URL for the second button
-      chrome.storage.local.set({ 'preparedEditUrl': preparedEditUrlForSecondButton }, () => {
-        // Redirect to the login page immediately after capture
-        chrome.tabs.update(tabs[0].id, { url: targetLoginUrl });
+            if (currentHostname === publicUrl1Hostname || (publicUrl2Hostname && currentHostname === publicUrl2Hostname)) {
+              matchedUrl = savedUrl;
+              break;
+            }
+          } catch (e) {
+            console.error("Invalid URL in storage:", savedUrl, e);
+          }
+        }
 
-        // Update button visibility in the popup
-        updateButtonVisibility();
+        if (matchedUrl) {
+          let baseEditUrl = matchedUrl.editUrl;
+          if (baseEditUrl.endsWith('/user')) {
+            baseEditUrl = baseEditUrl.slice(0, -5);
+          }
+          if (baseEditUrl.endsWith('/')) {
+            baseEditUrl = baseEditUrl.slice(0, -1);
+          }
+
+          const originalPath = currentUrlObj.pathname + currentUrlObj.search + currentUrlObj.hash;
+          const targetLoginUrl = baseEditUrl + loginPath;
+          const preparedEditUrlForSecondButton = baseEditUrl + originalPath;
+
+          // Store the URL for the second button
+          chrome.storage.local.set({ 'preparedEditUrl': preparedEditUrlForSecondButton }, () => {
+            // Redirect to the login page immediately after capture
+            chrome.tabs.update(tabs[0].id, { url: targetLoginUrl });
+
+            // Update button visibility in the popup
+            updateButtonVisibility();
+          });
+        } else {
+          // Fallback to old logic if no match is found
+          const urlObj = new URL(currentUrl);
+          let targetLoginUrl;
+          let preparedEditUrlForSecondButton;
+
+          const hostnameParts = urlObj.hostname.split('.');
+          const protocol = urlObj.protocol;
+          const originalPath = urlObj.pathname + urlObj.search + urlObj.hash;
+
+          if (hostnameParts[0].startsWith('edit-')) {
+            targetLoginUrl = `${protocol}//${urlObj.hostname}${loginPath}`;
+            preparedEditUrlForSecondButton = currentUrl;
+          } else {
+            const memberName = hostnameParts[0];
+            const domain = hostnameParts.slice(1).join('.');
+            targetLoginUrl = `${protocol}//edit-${memberName}.${domain}${loginPath}`;
+            preparedEditUrlForSecondButton = `${protocol}//edit-${memberName}.${domain}${originalPath}`;
+          }
+
+          chrome.storage.local.set({ 'preparedEditUrl': preparedEditUrlForSecondButton }, () => {
+            chrome.tabs.update(tabs[0].id, { url: targetLoginUrl });
+            updateButtonVisibility();
+          });
+        }
       });
     });
   };
