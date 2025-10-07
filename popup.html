@@ -5,9 +5,32 @@
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      width: 350px;
+      width: 400px; /* Increased width for tabs */
       padding: 15px;
       background-color: #f4f4f9;
+    }
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #ccc;
+      margin-bottom: 10px;
+    }
+    .tab-button {
+      padding: 10px 15px;
+      cursor: pointer;
+      border: none;
+      background-color: transparent;
+      font-size: 14px;
+      border-bottom: 2px solid transparent;
+    }
+    .tab-button.active {
+      border-bottom: 2px solid #007aff;
+      font-weight: 600;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
     }
     .container {
       display: flex;
@@ -71,33 +94,79 @@
     #stored-url-container strong {
       color: #000;
     }
+    #history-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    #history-table th, #history-table td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    #history-table th {
+      background-color: #f2f2f2;
+    }
+    .history-link {
+      background-color: #007aff;
+      color: white;
+      padding: 5px 10px;
+      text-decoration: none;
+      border-radius: 5px;
+      display: inline-block;
+      text-align: center;
+    }
+    .history-link:hover {
+      background-color: #005bb5;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div id="stored-url-container">
-      <p><strong>Stored URL:</strong> <span id="stored-url"></span></p>
-    </div>
-    <div class="primary-actions">
-      <button id="captureAndPrepareButton">Capture & Prepare Edit URL</button>
-      <div id="admin-login-container">
-        <button id="adminLoginButton">Login as Admin</button>
-        <button id="logoutAndAdminLoginButton" disabled>Logout and Log in as Admin</button>
+  <div class="tabs">
+    <button class="tab-button active" data-tab="actions">Actions</button>
+    <button class="tab-button" data-tab="history">History</button>
+  </div>
+
+  <div id="actions" class="tab-content active">
+    <div class="container">
+      <div id="stored-url-container">
+        <p><strong>Stored URL:</strong> <span id="stored-url"></span></p>
       </div>
-      <div id="go-to-root-container">
-        <button id="goToRootLeft">Go to Root</button>
-        <button id="goToRootRight">Go to Public Root</button>
+      <div class="primary-actions">
+        <button id="captureAndPrepareButton">Capture & Prepare Edit URL</button>
+        <div id="admin-login-container">
+          <button id="adminLoginButton">Login as Admin</button>
+          <button id="logoutAndAdminLoginButton" disabled>Logout and Log in as Admin</button>
+        </div>
+        <div id="go-to-root-container">
+          <button id="goToRootLeft">Go to Root</button>
+          <button id="goToRootRight">Go to Public Root</button>
+        </div>
       </div>
-    </div>
-    <div class="stored-url-actions">
-        <button id="goToStoredEditButton" style="display:none;">Go to Stored Edit Page</button>
-        <button id="clearStoredUrlButton" style="display:none;">Clear Stored URL</button>
-    </div>
-    <div class="secondary-actions">
-      <button id="logoutButton" style="display:none;">Logout</button>
-      <button id="optionsButton">Options</button>
+      <div class="stored-url-actions">
+          <button id="goToStoredEditButton" style="display:none;">Go to Stored Edit Page</button>
+          <button id="clearStoredUrlButton" style="display:none;">Clear Stored URL</button>
+      </div>
+      <div class="secondary-actions">
+        <button id="logoutButton" style="display:none;">Logout</button>
+        <button id="optionsButton">Options</button>
+      </div>
     </div>
   </div>
+
+  <div id="history" class="tab-content">
+    <table id="history-table">
+      <thead>
+        <tr>
+          <th>Website</th>
+          <th>Edit URL</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- History items will be inserted here -->
+      </tbody>
+    </table>
+  </div>
+
   <script src="popup.js"></script>
 </body>
 </html>

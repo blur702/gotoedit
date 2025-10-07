@@ -12,6 +12,46 @@ document.addEventListener('DOMContentLoaded', () => {
   const goToRootRight = document.getElementById('goToRootRight');
   const storedUrlContainer = document.getElementById('stored-url-container');
   const storedUrlElement = document.getElementById('stored-url');
+  const tabs = document.querySelectorAll('.tab-button');
+  const tabContents = document.querySelectorAll('.tab-content');
+  const historyTableBody = document.querySelector('#history-table tbody');
+
+  // Tab switching logic
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const target = document.getElementById(tab.dataset.tab);
+      tabContents.forEach(c => c.classList.remove('active'));
+      target.classList.add('active');
+    });
+  });
+
+  const renderHistory = () => {
+    if (historyTableBody) {
+      chrome.storage.local.get({ editHistory: [] }, (result) => {
+        const history = result.editHistory;
+        historyTableBody.innerHTML = ''; // Clear existing rows
+        history.forEach(item => {
+          const row = document.createElement('tr');
+          const siteCell = document.createElement('td');
+          const urlCell = document.createElement('td');
+          const link = document.createElement('a');
+
+          siteCell.textContent = item.website;
+          link.href = item.editUrl;
+          link.textContent = 'Go to Edit URL';
+          link.target = '_blank';
+          link.classList.add('history-link');
+
+          urlCell.appendChild(link);
+          row.appendChild(siteCell);
+          row.appendChild(urlCell);
+          historyTableBody.appendChild(row);
+        });
+      });
+    }
+  };
 
   if (goToRootLeft) {
     goToRootLeft.addEventListener('click', () => {
@@ -44,7 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Function to update button visibility based on stored URL
   const updateButtonVisibility = () => {
     chrome.storage.local.get(['preparedEditUrl'], (result) => {
       if (result.preparedEditUrl) {
@@ -68,11 +107,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
+  const saveToHistory = (website, editUrl) => {
+    chrome.storage.local.get({ editHistory: [] }, (result) => {
+      let history = result.editHistory;
+      history.unshift({ website, editUrl });
+      if (history.length > 10) {
+        history = history.slice(0, 10);
+      }
+      chrome.storage.local.set({ editHistory: history }, () => {
+        renderHistory();
+      });
+    });
+  };
+
   const prepareAndRedirect = (loginPath) => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (!tabs[0]) return; // Exit if no active tab
+      if (!tabs[0]) return;
       const currentUrl = tabs[0].url;
-      // Prevent running on chrome:// or edge:// pages
       if (currentUrl.startsWith('chrome://') || currentUrl.startsWith('edge://')) {
         console.log("Cannot run on special browser pages.");
         return;
@@ -111,16 +162,13 @@ document.addEventListener('DOMContentLoaded', () => {
           const targetLoginUrl = baseEditUrl + loginPath;
           const preparedEditUrlForSecondButton = baseEditUrl + originalPath;
 
-          // Store the URL for the second button
-          chrome.storage.local.set({ 'preparedEditUrl': preparedEditUrlForSecondButton }, () => {
-            // Redirect to the login page immediately after capture
-            chrome.tabs.update(tabs[0].id, { url: targetLoginUrl });
+          saveToHistory(currentHostname, preparedEditUrlForSecondButton);
 
-            // Update button visibility in the popup
+          chrome.storage.local.set({ 'preparedEditUrl': preparedEditUrlForSecondButton }, () => {
+            chrome.tabs.update(tabs[0].id, { url: targetLoginUrl });
             updateButtonVisibility();
           });
         } else {
-          // Fallback to old logic if no match is found
           const urlObj = new URL(currentUrl);
           let targetLoginUrl;
           let preparedEditUrlForSecondButton;
@@ -139,6 +187,8 @@ document.addEventListener('DOMContentLoaded', () => {
             preparedEditUrlForSecondButton = `${protocol}//edit-${memberName}.${domain}${originalPath}`;
           }
 
+          saveToHistory(urlObj.hostname, preparedEditUrlForSecondButton);
+
           chrome.storage.local.set({ 'preparedEditUrl': preparedEditUrlForSecondButton }, () => {
             chrome.tabs.update(tabs[0].id, { url: targetLoginUrl });
             updateButtonVisibility();
@@ -148,10 +198,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  // Initial update of button visibility
   updateButtonVisibility();
+  renderHistory();
 
-  // Inject content script to find logout link
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (tabs[0] && tabs[0].id && tabs[0].url && !tabs[0].url.startsWith('chrome://') && !tabs[0].url.startsWith('edge://')) {
       chrome.scripting.executeScript(
@@ -162,19 +211,18 @@ document.addEventListener('DOMContentLoaded', () => {
         () => {
           if (chrome.runtime.lastError) {
             console.error('Script injection failed:', chrome.runtime.lastError.message);
-            if (logoutButton) logoutButton.style.display = 'none'; // Hide logout button if script fails
+            if (logoutButton) logoutButton.style.display = 'none';
           }
         }
       );
     }
   });
 
-  // Listener for messages from content script (getLogoutLink.js)
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'logoutLinkFound') {
       if (request.logoutUrl) {
         if (logoutButton) {
-          logoutButton.dataset.logoutUrl = request.logoutUrl; // Store URL in button's dataset
+          logoutButton.dataset.logoutUrl = request.logoutUrl;
           logoutButton.style.display = 'block';
           logoutAndAdminLoginButton.disabled = false;
         }
@@ -217,10 +265,8 @@ document.addEventListener('DOMContentLoaded', () => {
               targetLoginUrl = `${protocol}//edit-${memberName}.${domain}/user/login`;
             }
 
-            // First, go to the logout URL
             chrome.tabs.update(tabs[0].id, { url: logoutUrl });
 
-            // After 10 seconds, go to the admin login page
             setTimeout(() => {
               chrome.tabs.update(tabs[0].id, { url: targetLoginUrl });
             }, 10000);
@@ -240,7 +286,6 @@ document.addEventListener('DOMContentLoaded', () => {
           chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             if (tabs[0] && tabs[0].id) {
               chrome.tabs.update(tabs[0].id, { url: targetUrl });
-              // Clear the stored URL after use
               chrome.storage.local.remove(['preparedEditUrl'], () => {
                 updateButtonVisibility();
               });
