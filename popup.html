@@ -4,73 +4,96 @@
   <title>Go To Edit</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      width: 450px; /* Wider to accommodate two columns */
-      padding: 10px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      width: 350px;
+      padding: 15px;
+      background-color: #f4f4f9;
     }
     .container {
       display: flex;
-      justify-content: space-between;
-    }
-    .column {
-      flex: 1;
-      padding: 5px;
+      flex-direction: column;
+      gap: 10px;
     }
     button {
       width: 100%;
-      padding: 10px;
-      margin-bottom: 5px; /* Add some space between buttons */
-      background-color: #4CAF50;
-      color: white;
+      padding: 12px;
       border: none;
-      border-radius: 5px;
+      border-radius: 8px;
       cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background-color 0.2s ease-in-out;
     }
-    button:hover {
-      background-color: #45a049;
+    .primary-actions, .secondary-actions, .stored-url-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
-    #goToStoredEditButton {
-      background-color: #008CBA; /* Different color for the second button */
+    #captureAndPrepareButton { background-color: #007aff; color: white; }
+    #captureAndPrepareButton:hover { background-color: #005bb5; }
+    #admin-login-container { display: flex; }
+    #adminLoginButton, #logoutAndAdminLoginButton {
+      flex: 1;
     }
-    #goToStoredEditButton:hover {
-      background-color: #007B9E;
+    #adminLoginButton { border-radius: 8px 0 0 8px; margin-right: 1px; background-color: #ff9500; color: white; }
+    #logoutAndAdminLoginButton { border-radius: 0 8px 8px 0; background-color: #af52de; color: white; }
+    #adminLoginButton:hover { background-color: #c77400; }
+    #logoutAndAdminLoginButton:hover { background-color: #893cb8; }
+    #go-to-root-container { display: flex; }
+    #goToRootLeft, #goToRootRight {
+      flex: 1;
+      background-color: #34c759;
+      color: white;
     }
-    #logoutButton {
-      background-color: #f44336; /* Red for logout */
+    #goToRootLeft { border-radius: 8px 0 0 8px; margin-right: 1px; }
+    #goToRootRight { border-radius: 0 8px 8px 0; }
+    #goToRootLeft:hover, #goToRootRight:hover { background-color: #28a449; }
+    #goToStoredEditButton { background-color: #007aff; color: white; }
+    #goToStoredEditButton:hover { background-color: #005bb5; }
+    #clearStoredUrlButton { background-color: #ff3b30; color: white; }
+    #clearStoredUrlButton:hover { background-color: #c52820; }
+    #logoutButton { background-color: #ff3b30; color: white; }
+    #logoutButton:hover { background-color: #c52820; }
+    #optionsButton { background-color: #8e8e93; color: white; }
+    #optionsButton:hover { background-color: #6d6d72; }
+    #stored-url-container {
+      padding: 10px;
+      background-color: #e9e9eb;
+      border-radius: 8px;
+      font-size: 12px;
+      word-wrap: break-word;
+      display: none; /* Hidden by default */
     }
-    #logoutButton:hover {
-      background-color: #da190b;
+    #stored-url-container p {
+      margin: 0;
+      color: #333;
     }
-    #clearStoredUrlButton {
-      background-color: #f44336; /* Red for clear */
-    }
-    #clearStoredUrlButton:hover {
-      background-color: #da190b;
-    }
-    #adminLoginButton {
-      background-color: #ff9800; /* Orange for admin */
-    }
-    #adminLoginButton:hover {
-      background-color: #f57c00;
-    }
-    #logoutAndAdminLoginButton {
-      background-color: #9C27B0; /* Purple for the new button */
-    }
-    #logoutAndAdminLoginButton:hover {
-      background-color: #7B1FA2;
+    #stored-url-container strong {
+      color: #000;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="column">
-      <button id="captureAndPrepareButton">Capture & Prepare Edit URL</button>
-      <button id="adminLoginButton">Login as Admin</button>
-      <button id="goToStoredEditButton" style="display:none;">Go to Stored Edit Page</button>
-      <button id="clearStoredUrlButton" style="display:none;">Clear Stored URL</button>
+    <div id="stored-url-container">
+      <p><strong>Stored URL:</strong> <span id="stored-url"></span></p>
     </div>
-    <div class="column">
-      <button id="logoutAndAdminLoginButton" disabled>Logout and Log in as Admin</button>
+    <div class="primary-actions">
+      <button id="captureAndPrepareButton">Capture & Prepare Edit URL</button>
+      <div id="admin-login-container">
+        <button id="adminLoginButton">Login as Admin</button>
+        <button id="logoutAndAdminLoginButton" disabled>Logout and Log in as Admin</button>
+      </div>
+      <div id="go-to-root-container">
+        <button id="goToRootLeft">Go to Root</button>
+        <button id="goToRootRight">Go to Public Root</button>
+      </div>
+    </div>
+    <div class="stored-url-actions">
+        <button id="goToStoredEditButton" style="display:none;">Go to Stored Edit Page</button>
+        <button id="clearStoredUrlButton" style="display:none;">Clear Stored URL</button>
+    </div>
+    <div class="secondary-actions">
       <button id="logoutButton" style="display:none;">Logout</button>
       <button id="optionsButton">Options</button>
     </div>

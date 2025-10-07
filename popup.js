@@ -1,11 +1,42 @@
 document.addEventListener('DOMContentLoaded', () => {
   const captureAndPrepareButton = document.getElementById('captureAndPrepareButton');
+  const adminLoginContainer = document.getElementById('admin-login-container');
   const adminLoginButton = document.getElementById('adminLoginButton');
   const logoutAndAdminLoginButton = document.getElementById('logoutAndAdminLoginButton');
   const goToStoredEditButton = document.getElementById('goToStoredEditButton');
   const logoutButton = document.getElementById('logoutButton');
   const clearStoredUrlButton = document.getElementById('clearStoredUrlButton');
   const optionsButton = document.getElementById('optionsButton');
+  const goToRootContainer = document.getElementById('go-to-root-container');
+  const goToRootLeft = document.getElementById('goToRootLeft');
+  const goToRootRight = document.getElementById('goToRootRight');
+  const storedUrlContainer = document.getElementById('stored-url-container');
+  const storedUrlElement = document.getElementById('stored-url');
+
+  if (goToRootLeft) {
+    goToRootLeft.addEventListener('click', () => {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0]) {
+          const url = new URL(tabs[0].url);
+          const rootUrl = `${url.protocol}//${url.hostname}`;
+          chrome.tabs.create({ url: rootUrl });
+        }
+      });
+    });
+  }
+
+  if (goToRootRight) {
+    goToRootRight.addEventListener('click', () => {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0]) {
+          const url = new URL(tabs[0].url);
+          const newHostname = url.hostname.replace(/^edit-/, '');
+          const rootUrl = `${url.protocol}//${newHostname}`;
+          chrome.windows.create({ url: rootUrl, incognito: true });
+        }
+      });
+    });
+  }
 
   if (optionsButton) {
     optionsButton.addEventListener('click', () => {
@@ -18,16 +49,21 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.storage.local.get(['preparedEditUrl'], (result) => {
       if (result.preparedEditUrl) {
         if (captureAndPrepareButton) captureAndPrepareButton.style.display = 'none';
-        if (adminLoginButton) adminLoginButton.style.display = 'none';
-        if (logoutAndAdminLoginButton) logoutAndAdminLoginButton.style.display = 'none';
+        if (adminLoginContainer) adminLoginContainer.style.display = 'none';
+        if (goToRootContainer) goToRootContainer.style.display = 'none';
         if (goToStoredEditButton) goToStoredEditButton.style.display = 'block';
         if (clearStoredUrlButton) clearStoredUrlButton.style.display = 'block';
+        if (storedUrlContainer) {
+          storedUrlElement.textContent = result.preparedEditUrl;
+          storedUrlContainer.style.display = 'block';
+        }
       } else {
         if (captureAndPrepareButton) captureAndPrepareButton.style.display = 'block';
-        if (adminLoginButton) adminLoginButton.style.display = 'block';
-        if (logoutAndAdminLoginButton) logoutAndAdminLoginButton.style.display = 'block';
+        if (adminLoginContainer) adminLoginContainer.style.display = 'flex';
+        if (goToRootContainer) goToRootContainer.style.display = 'flex';
         if (goToStoredEditButton) goToStoredEditButton.style.display = 'none';
         if (clearStoredUrlButton) clearStoredUrlButton.style.display = 'none';
+        if (storedUrlContainer) storedUrlContainer.style.display = 'none';
       }
     });
   };
