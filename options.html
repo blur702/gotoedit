@@ -1,75 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Go To Edit Options</title>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        h1, h2 { color: #333; }
-        #form-container, #urls-container { margin-bottom: 20px; }
-        input[type="text"], button {
-            padding: 10px;
-            margin-right: 10px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-        button {
-            cursor: pointer;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-        }
-        button:hover { background-color: #0056b3; }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            text-align: left;
-            padding: 8px;
-            border-bottom: 1px solid #ddd;
-        }
-        th { background-color: #f2f2f2; }
-        .delete-btn {
-            background-color: #f44336;
-        }
-        .delete-btn:hover {
-            background-color: #da190b;
-        }
-    </style>
+  <title>GoToEdit Options</title>
+  <link rel="stylesheet" type="text/css" href="options.css">
 </head>
 <body>
-    <h1>Go To Edit Options</h1>
-
-    <div id="form-container">
-        <h2>Add or Update a URL Mapping</h2>
-        <input type="text" id="officeName" placeholder="Office Name (e.g., Speaker)">
-        <input type="text" id="publicUrl1" placeholder="Public URL 1">
-        <input type="text" id="publicUrl2" placeholder="Public URL 2 (Optional)">
-        <input type="text" id="editUrl" placeholder="Edit URL">
-        <input type="hidden" id="editIndex">
-        <button id="save-btn">Save</button>
-    </div>
-
-    <div id="urls-container">
-        <h2>Saved URLs</h2>
-        <table id="urls-table">
-            <thead>
-                <tr>
-                    <th>Office Name</th>
-                    <th>Public URL 1</th>
-                    <th>Public URL 2</th>
-                    <th>Edit URL</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- URL mappings will be inserted here -->
-            </tbody>
-        </table>
-    </div>
-
-    <script src="options.js"></script>
+  <h1>GoToEdit Options</h1>
+  <p>There are no configurable options at this time.</p>
 </body>
 </html>

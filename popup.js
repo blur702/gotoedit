@@ -12,6 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const goToRootRight = document.getElementById('goToRootRight');
   const storedUrlContainer = document.getElementById('stored-url-container');
   const storedUrlElement = document.getElementById('stored-url');
+  const auditIdDisplay = document.getElementById('audit-id-display');
+  const auditIdElement = document.getElementById('audit-id');
   const tabs = document.querySelectorAll('.tab-button');
   const tabContents = document.querySelectorAll('.tab-content');
   const historyTableBody = document.querySelector('#history-table tbody');
@@ -78,14 +80,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (optionsButton) {
-    optionsButton.addEventListener('click', () => {
-      chrome.tabs.create({ url: 'options.html' });
-    });
-  }
 
   const updateButtonVisibility = () => {
-    chrome.storage.local.get(['preparedEditUrl'], (result) => {
+    chrome.storage.local.get(['preparedEditUrl', 'preparedAuditId'], (result) => {
       if (result.preparedEditUrl) {
         if (captureAndPrepareButton) captureAndPrepareButton.style.display = 'none';
         if (adminLoginContainer) adminLoginContainer.style.display = 'none';
@@ -95,6 +92,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (storedUrlContainer) {
           storedUrlElement.textContent = result.preparedEditUrl;
           storedUrlContainer.style.display = 'block';
+
+          // Show audit ID if available
+          if (result.preparedAuditId && auditIdDisplay && auditIdElement) {
+            auditIdElement.textContent = result.preparedAuditId;
+            auditIdDisplay.style.display = 'block';
+          } else if (auditIdDisplay) {
+            auditIdDisplay.style.display = 'none';
+          }
         }
       } else {
         if (captureAndPrepareButton) captureAndPrepareButton.style.display = 'block';
@@ -103,6 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (goToStoredEditButton) goToStoredEditButton.style.display = 'none';
         if (clearStoredUrlButton) clearStoredUrlButton.style.display = 'none';
         if (storedUrlContainer) storedUrlContainer.style.display = 'none';
+        if (auditIdDisplay) auditIdDisplay.style.display = 'none';
       }
     });
   };
@@ -129,34 +135,31 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      chrome.storage.local.get({ urls: [] }, (result) => {
-        const savedUrls = result.urls;
+      chrome.storage.local.get({ 'membersData': [] }, (result) => {
+        const membersData = result.membersData;
         const currentUrlObj = new URL(currentUrl);
         const currentHostname = currentUrlObj.hostname.replace(/^www\./, '');
 
-        let matchedUrl = null;
-        for (const savedUrl of savedUrls) {
+        let matchedMember = null;
+        for (const member of membersData) {
           try {
-            const publicUrl1Hostname = new URL(savedUrl.publicUrl1).hostname.replace(/^www\./, '');
-            const publicUrl2Hostname = savedUrl.publicUrl2 ? new URL(savedUrl.publicUrl2).hostname.replace(/^www\./, '') : null;
-
-            if (currentHostname === publicUrl1Hostname || (publicUrl2Hostname && currentHostname === publicUrl2Hostname)) {
-              matchedUrl = savedUrl;
-              break;
+            const websiteUrl = member['website-url'];
+            if (websiteUrl) {
+              const memberHostname = new URL(websiteUrl).hostname.replace(/^www\./, '');
+              if (currentHostname === memberHostname) {
+                matchedMember = member;
+                break;
+              }
             }
           } catch (e) {
-            console.error("Invalid URL in storage:", savedUrl, e);
+            console.error("Invalid URL for member:", member, e);
           }
         }
 
-        if (matchedUrl) {
-          let baseEditUrl = matchedUrl.editUrl;
-          if (baseEditUrl.endsWith('/user')) {
-            baseEditUrl = baseEditUrl.slice(0, -5);
-          }
-          if (baseEditUrl.endsWith('/')) {
-            baseEditUrl = baseEditUrl.slice(0, -1);
-          }
+        if (matchedMember) {
+          const memberName = matchedMember['official-name'].toLowerCase().replace(/\s+/g, '-');
+          const domain = 'house.gov';
+          let baseEditUrl = `https://edit-${memberName}.${domain}`;
 
           const originalPath = currentUrlObj.pathname + currentUrlObj.search + currentUrlObj.hash;
           const targetLoginUrl = baseEditUrl + loginPath;
@@ -164,7 +167,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
           saveToHistory(currentHostname, preparedEditUrlForSecondButton);
 
-          chrome.storage.local.set({ 'preparedEditUrl': preparedEditUrlForSecondButton }, () => {
+          const storageData = { 'preparedEditUrl': preparedEditUrlForSecondButton };
+          if (matchedMember.bioguideId) {
+            storageData.preparedAuditId = matchedMember.bioguideId;
+          }
+
+          chrome.storage.local.set(storageData, () => {
             chrome.tabs.update(tabs[0].id, { url: targetLoginUrl });
             updateButtonVisibility();
           });
@@ -286,7 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
           chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             if (tabs[0] && tabs[0].id) {
               chrome.tabs.update(tabs[0].id, { url: targetUrl });
-              chrome.storage.local.remove(['preparedEditUrl'], () => {
+              chrome.storage.local.remove(['preparedEditUrl', 'preparedAuditId'], () => {
                 updateButtonVisibility();
               });
             }
@@ -320,7 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (clearStoredUrlButton) {
     clearStoredUrlButton.addEventListener('click', () => {
-      chrome.storage.local.remove(['preparedEditUrl'], () => {
+      chrome.storage.local.remove(['preparedEditUrl', 'preparedAuditId'], () => {
         updateButtonVisibility();
       });
     });

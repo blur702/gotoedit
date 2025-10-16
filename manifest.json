@@ -1,17 +1,19 @@
 {
   "manifest_version": 3,
-  "name": "Go To Edit",
+  "name": "GoToEdit",
   "version": "1.0",
-  "description": "Redirects to the edit version of a House.gov website.",
+  "description": "A browser extension to quickly jump to the edit page of a website.",
   "permissions": [
     "activeTab",
-    "scripting",
-    "tabs",
-    "storage"
+    "storage",
+    "scripting"
   ],
   "host_permissions": [
-    "*://*.house.gov/*"
+    "https://member-info.house.gov/"
   ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -20,8 +22,16 @@
       "128": "icons/icon128.svg"
     }
   },
-  "background": {
-    "service_worker": "background.js"
+  "icons": {
+    "16": "icons/icon16.svg",
+    "48": "icons/icon48.svg",
+    "128": "icons/icon128.svg"
   },
-  "options_page": "options.html"
+  "options_page": "options.html",
+  "content_scripts": [
+    {
+      "matches": ["https://member-info.house.gov/*"],
+      "js": ["content.js"]
+    }
+  ]
 }
