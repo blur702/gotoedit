@@ -113,3 +113,23 @@ body {
     .history-link:hover {
       background-color: #005bb5;
     }
+
+    /* Styles for options page */
+    .options-container {
+      padding: 20px;
+      background-color: #f4f4f9;
+      min-height: 100vh;
+    }
+
+    .options-container h1 {
+      font-size: 24px;
+      color: #333;
+      border-bottom: 2px solid #007aff;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+
+    .options-container p {
+      font-size: 16px;
+      color: #555;
+    }
